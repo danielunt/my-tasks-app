@@ -1,0 +1,23 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails and temporary files
+._*
+.Spotlight-V100
+.Trashes
+
+# VS Code settings
+.vscode/
+*.code-workspace
+
+# Node / npm (if you ever add them)
+node_modules/
+
+# Python cache files (if you ever use Python scripts)
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
