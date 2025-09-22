@@ -1,120 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tasks</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Terminal Notes</title>
   <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; padding:12px}
-    body{max-width:720px;margin:0 auto;}
-    h1{margin:0 0 12px 0;font-size:20px}
-    form{display:flex;gap:8px;margin-bottom:12px}
-    input[type=text]{flex:1;padding:8px;border:1px solid #ddd;border-radius:6px}
-    button{padding:8px 12px;border-radius:6px;border:0;background:#414141;color:white}
-    ul{list-style:none;padding:0;margin:0}
-    li{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #f0f0f0}
-    li.done span{opacity:.5;text-decoration:line-through}
-    li button.del{margin-left:auto;background:transparent;border:0;font-size:18px;cursor:pointer}
-    footer{margin-top:12px}
-    small.hint{color:#666}
+    body {
+      margin: 0;
+      background: #000;
+      color: #00ff66;
+      font-family: Menlo, Courier, monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 1rem;
+      line-height: 1.4;
+      overflow-y: auto;
+    }
+
+    /* Prevent zooming on double-tap or pinch */
+    * {
+      touch-action: manipulation;
+    }
   </style>
-  <meta name="theme-color" content="#0b74de">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-  <h1>Tasks</h1>
+  <textarea id="editor"
+    placeholder="// Type here — your notes will be saved automatically"></textarea>
 
-  <form id="form">
-    <input id="taskInput" type="text" placeholder="Add a task (press Enter or Add)" autocomplete="off" />
-    <button type="submit">Add</button>
-  </form>
+  <script>
+    const editor = document.getElementById('editor');
+    const STORAGE_KEY = 'terminal-notes';
 
-  <ul id="taskList" aria-live="polite"></ul>
+    // Load saved text
+    editor.value = localStorage.getItem(STORAGE_KEY) || '';
 
-  <footer>
-    <button id="clearCompleted">Clear completed</button>
-    <span class="hint" style="margin-left:12px"><small>Saved locally — private to this device/profile.</small></span>
-  </footer>
+    // Save on input
+    editor.addEventListener('input', () => {
+      localStorage.setItem(STORAGE_KEY, editor.value);
+    });
 
-<script>
-const KEY = 'tasks-v1';
-let tasks = JSON.parse(localStorage.getItem(KEY) || '[]');
-
-const form = document.getElementById('form');
-const taskInput = document.getElementById('taskInput');
-const list = document.getElementById('taskList');
-const clearBtn = document.getElementById('clearCompleted');
-
-function save() {
-  localStorage.setItem(KEY, JSON.stringify(tasks));
-  render();
-}
-
-function render() {
-  list.innerHTML = '';
-  if(tasks.length === 0){
-    const li = document.createElement('li');
-    li.innerHTML = '<small>No tasks yet — add one above.</small>';
-    list.appendChild(li);
-    return;
-  }
-  tasks.forEach(t => {
-    const li = document.createElement('li');
-    li.className = t.done ? 'done' : '';
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.checked = t.done;
-    chk.addEventListener('change', () => toggleDone(t.id));
-    const span = document.createElement('span');
-    span.textContent = t.text;
-    const del = document.createElement('button');
-    del.className = 'del';
-    del.title = 'Remove';
-    del.textContent = '✕';
-    del.addEventListener('click', () => removeTask(t.id));
-    li.appendChild(chk);
-    li.appendChild(span);
-    li.appendChild(del);
-    list.appendChild(li);
-  });
-}
-
-function addTask(text){
-  if(!text || !text.trim()) return;
-  tasks.push({ id: Date.now(), text: text.trim(), done: false });
-  save();
-}
-
-function toggleDone(id){
-  tasks = tasks.map(t => t.id === id ? Object.assign({}, t, {done: !t.done}) : t);
-  save();
-}
-
-function removeTask(id){
-  tasks = tasks.filter(t => t.id !== id);
-  save();
-}
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  addTask(taskInput.value);
-  taskInput.value = '';
-});
-
-clearBtn.addEventListener('click', () => {
-  tasks = tasks.filter(t => !t.done);
-  save();
-});
-
-render();
-
-// Register service worker for offline / installable (works on modern browsers)
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(err=>console.log('SW failed', err));
-}
-</script>
+    // Disable double-tap zoom (iOS Safari)
+    document.addEventListener('touchend', function preventDoubleTapZoom(e) {
+      const now = new Date().getTime();
+      if (this.lastTouchEnd && now - this.lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      this.lastTouchEnd = now;
+    }, false);
+  </script>
 </body>
 </html>
